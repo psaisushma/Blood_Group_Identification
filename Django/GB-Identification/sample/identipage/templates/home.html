@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Page</title>
+    <style>
+        body {
+            font-family: Arial;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            text-align: center;
+            background-image: url('https://images.pexels.com/photos/8670443/pexels-photo-8670443.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2');
+            background-size: cover; 
+            background-position: center;
+        }
+        .navbar {
+            background-color: rgba(194, 103, 103, 0.8);
+            overflow: hidden;
+        }
+        .navbar a {
+            float: left;
+            font-weight: bold;
+            display: block;
+            color: black;
+            text-align: center;
+            padding: 20px 20px;
+            text-decoration: none;
+        }
+        .navbar a:hover {
+            background-color: white;
+        }
+        .navbar-right {
+            float: right;
+        }   
+        .content {
+            max-width: 100%;
+            background-color: rgba(255, 252, 252, 0.6);
+            padding: 40px;
+            margin-top: 50px;
+        }
+        .content h1 {
+            font-size: 3rem;
+            margin-bottom: 30px;
+        }
+        .content p {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        .content a {
+            padding: 10px 20px;
+            text-decoration: none;
+        }
+        @media (max-width: 768px) {
+            .content h1 {
+                font-size: 2.5rem;
+            }
+            .content p {
+                font-size: 1rem;
+            }
+        }
+        .footerRight {
+            padding: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="navbar-right">
+            <a href="{% url 'login' %}">LogIn</a>
+            <!-- <a href="/login" id="log"></a> -->
+            <a href="{% url 'signup' %}">SignUp</a>
+        </div>
+    </div>
+    <div class="content">
+        <h1>Welcome to Blood Group Identification</h1>
+        <p>
+            This platform allows you to easily identify your blood group by uploading images of your blood cells. Our cutting-edge analysis tool ensures accurate and quick results, making it essential for medical treatments and emergency situations.
+        </p>
+        <p>
+            Simply log in or sign up to get started. Upload the required images and receive your blood group information in no time!
+        </p>
+        <a href="{% url 'signup' %}">Get Started</a>
+    </div>
+    <div class="footerRight">
+        <span class="copyright">@Blood Group Identification. All rights reserved. 2024.</span>
+    </div>
+</body>
+</html>

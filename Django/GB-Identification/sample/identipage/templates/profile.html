@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Page</title>
+    <style>
+        body {
+            font-family: Arial;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: url('https://images.pexels.com/photos/954584/pexels-photo-954584.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2');
+            background-size: cover; 
+            background-position: center;
+        }
+        .navbar {
+            background-color: rgba(194, 103, 103, 0.8);
+            overflow: hidden;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+        .navbar a {
+            float: left;
+            font-weight: bold;
+            display: block;
+            color: black;
+            text-align: center;
+            padding: 20px 20px;
+            text-decoration: none;
+        }
+        .navbar a:hover {
+            background-color: white;
+        }
+        .container {
+            text-align: center;
+            display: flex;
+            justify-content: space-between;
+        }
+        form {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            text-align: center;
+            margin: 30px;
+        }
+        label {
+            display: block;
+            text-align: left;
+        }
+        input[type="file"] {
+            width: 100%;
+        }
+        button[type="submit"] {
+            background-color: rgb(255, 94, 94);
+            color: black;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+        }
+        .content {
+            max-width: 100%;
+            background-color: rgba(255, 252, 252, 0.6);
+            padding: 20px;
+            margin-top: 100px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: row;
+        }
+        .col {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="{% url 'home' %}">Home</a>
+    </div>
+    <div class="container content">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <h3>Blood Group Identification</h3>
+            <label for="abd-image">ABD Blood Cell Image:</label><br>
+            <input type="file" id="abd-image" name="abd_image" accept="image/*"><br><br>   
+            <button type="submit">Check Blood Type</button>
+        </form>
+        <div class="col">
+            {% if abd_image_url %}
+                <h3>ABD Blood Cell Image:</h3>
+                <img src="{{ abd_image_url }}" alt="ABD Blood Cell Image"> <!-- This line will display the uploaded image -->
+                <p>Contour Count: {{ contour_count }}</p>
+                <p>Blood Group: {{ blood_group }}</p>
+            {% endif %}
+            {% if error_message %}
+                <p style="color: rgb(255, 0, 0); margin-top: 120px;">{{ error_message }}</p>
+            {% endif %}
+        </div>  
+    </div>
+</body>
+</html>
