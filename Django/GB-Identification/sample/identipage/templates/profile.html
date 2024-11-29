@@ -37,8 +37,6 @@
         }
         .container {
             text-align: center;
-            display: flex;
-            justify-content: space-between;
         }
         form {
             background-color: white;
@@ -53,7 +51,7 @@
             display: block;
             text-align: left;
         }
-        input[type="file"] {
+        input[type="file"]{
             width: 100%;
         }
         button[type="submit"] {
@@ -72,10 +70,20 @@
             margin-top: 100px;
             border-radius: 10px;
             display: flex;
-            flex-direction: row;
+            flex-direction: column;
+            align-items: center;
+        }
+        .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            width: 100%;
         }
         .col {
             flex: 1;
+            padding: 10px;
+            text-align: center;
         }
     </style>
 </head>
@@ -83,25 +91,35 @@
     <div class="navbar">
         <a href="{% url 'home' %}">Home</a>
     </div>
-    <div class="container content">
-        <form method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
-            <h3>Blood Group Identification</h3>
-            <label for="abd-image">ABD Blood Cell Image:</label><br>
-            <input type="file" id="abd-image" name="abd_image" accept="image/*"><br><br>   
-            <button type="submit">Check Blood Type</button>
-        </form>
-        <div class="col">
-            {% if abd_image_url %}
-                <h3>ABD Blood Cell Image:</h3>
-                <img src="{{ abd_image_url }}" alt="ABD Blood Cell Image"> <!-- This line will display the uploaded image -->
-                <p>Contour Count: {{ contour_count }}</p>
-                <p>Blood Group: {{ blood_group }}</p>
+    <div class="content">
+        <div class="container">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <h3>Blood Group Identification</h3>
+                <label for="abd-image">ABD Blood Cell Image:</label><br>
+                <input type="file" id="abd-image" name="abd_image" accept="image/*"><br><br>   
+                <button type="submit">Check Blood Type</button>
+            </form>
+            {% if blood_type %}
+                <h3>Predicted Blood Type:</h3>
+                <p style="font-size: 18px; font-weight: bold;">{{ blood_type }}</p>
             {% endif %}
-            {% if error_message %}
-                <p style="color: rgb(255, 0, 0); margin-top: 120px;">{{ error_message }}</p>
+        </div>
+        <div class="row">
+            {% if abd_image_url and morphologic_image_url %}
+                <div class="col">
+                    <h3>ABD Blood Cell Image:</h3>
+                    <img src="{{ abd_image_url }}" alt="Original ABD Blood Cell Image">
+                </div>
+                <div class="col">
+                    <h3>Processed Image:</h3>
+                    <img src="{{ morphologic_image_url }}" alt="Processed Image">
+                </div>
             {% endif %}
-        </div>  
+        </div>
+        {% if error_message %}
+            <p style="color: rgb(255, 0, 0); margin-top: 20px;">{{ error_message }}</p>
+        {% endif %}
     </div>
 </body>
 </html>
