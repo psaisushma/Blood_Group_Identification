@@ -1,13 +1,12 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
-from .forms import UploadImageForm
-from django.core.files.storage import default_storage
-from django.core.files.base import ContentFile
-from PIL import Image
+from django.core.files.storage import FileSystemStorage
+import base64
 import cv2
 import numpy as np
 
+# Create your views here.
 def home(request):
     return render(request, 'home.html')
 
@@ -45,70 +44,90 @@ def signup_view(request):
         form = UserCreationForm()
         return render(request, 'signup.html', {'form': form})
 
-from django.core.files.storage import default_storage
-from django.core.files.base import ContentFile
-import cv2
-from .forms import UploadImageForm
-
-def profile_view(request):
+def profile(request):
+    abd_image_url = None
+    morphologic_image_url = None
+    blood_type = None
     if request.method == 'POST':
-        form = UploadImageForm(request.POST, request.FILES)
-        if form.is_valid():
-            # Save the uploaded image to the media directory
-            img = form.cleaned_data['abd_image']
-            path = default_storage.save('tmp/' + img.name, ContentFile(img.read()))
-            img_path = default_storage.path(path)
-            img_url = default_storage.url(path)  # Get the URL of the saved image
+        abd_image = request.FILES.get('abd_image')
+        if abd_image:
+            fs = FileSystemStorage()
+            filename = fs.save(abd_image.name, abd_image)
+            uploaded_file_url = fs.url(filename)
 
-            bin_img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
-            _, bin_img = cv2.threshold(bin_img, 127, 255, cv2.THRESH_BINARY)
+            img = cv2.imread(fs.path(filename))
 
+            # Step 1: Convert to grayscale
+            gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+            # Step 2: Apply Gaussian blur to reduce noise
+            blur_img = cv2.GaussianBlur(gray_img, (5, 5), 0)
+
+            # Step 3: Enhance the contrast of the image
+            enhance_img = cv2.equalizeHist(blur_img)
+
+            # Step 4: Apply Otsu's thresholding
+            _, bin_img = cv2.threshold(enhance_img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
+            # Step 5: Perform morphological operations
+            kernel_imp = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+            bin_img = cv2.morphologyEx(bin_img, cv2.MORPH_OPEN, kernel_imp)  # Remove small noise
+            bin_img = cv2.morphologyEx(bin_img, cv2.MORPH_CLOSE, kernel_imp)  # Fill small holes
+
+            # Encode the morphologically processed image to base64
+            _, morphologic_buffer = cv2.imencode('.jpg', bin_img)
+            morphologic_encoded = base64.b64encode(morphologic_buffer).decode('utf-8')
+            morphologic_image_url = f"data:image/jpg;base64,{morphologic_encoded}"
+
+            # Base64 encoding for original image
+            _, buffer = cv2.imencode('.jpg', img)
+            encoded_image = base64.b64encode(buffer).decode('utf-8')
+            abd_image_url = f"data:image/jpg;base64,{encoded_image}"
+
+            # Calculate blood type
             hei, wid = bin_img.shape
             mid_wid = wid // 3
-            region_A = bin_img[:mid_wid]
-            region_B = bin_img[mid_wid:2*mid_wid]
-            region_D = bin_img[2*mid_wid:]
 
+            region_A = bin_img[:, 0:mid_wid]
+            region_B = bin_img[:, mid_wid:2 * mid_wid]
+            region_D = bin_img[:, 2 * mid_wid:]
+
+            # Define agglutination calculation
             def cal_agg(region):
-                num_labels, labels, stats, var = cv2.connectedComponentsWithStats(region, connectivity=8)
+                num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(region, connectivity=8)
                 return num_labels - 1
 
+            # Calculate connected components in each region
             num_region_A = cal_agg(region_A)
             num_region_B = cal_agg(region_B)
             num_region_D = cal_agg(region_D)
 
-            # Determine blood group based on contour counts
-            blood_group = determine_blood_group(num_region_A, num_region_B, num_region_D)
-            print(f"Contour Counts: A={num_region_A}, B={num_region_B}, D={num_region_D}")
-            print(f"Determined Blood Group: {blood_group}")
-
-            return render(request, 'profile.html', {
-                'abd_image_url': img_url,
-                'contour_count': (num_region_A, num_region_B, num_region_D),
-                'blood_group': blood_group
+            # Determine the blood type based on agglutination
+            if num_region_A > 0 and num_region_B == 0 and num_region_D > 0:
+                blood_type = "A+"
+            elif num_region_A == 0 and num_region_B > 0 and num_region_D > 0:
+                blood_type = "B+"
+            elif num_region_A > 0 and num_region_B > 0 and num_region_D > 0:
+                blood_type = "AB+"
+            elif num_region_A == 0 and num_region_B == 0 and num_region_D > 0:
+                blood_type = "O+"
+            elif num_region_A > 0 and num_region_B == 0 and num_region_D <= 0:
+                blood_type = "A-"
+            elif num_region_A == 0 and num_region_B > 0 and num_region_D <= 0:
+                blood_type = "B-"
+            elif num_region_A > 0 and num_region_B > 0 and num_region_D <= 0:
+                blood_type = "AB-"
+            elif num_region_A == 0 and num_region_B == 0 and num_region_D <= 0:
+                blood_type = "O-"
+            else:
+                blood_type = "Unknown"
+        else:
+            return render(request, "profile.html", {
+                'error_message': "Please upload ABD blood cell images."
             })
-    else:
-        form = UploadImageForm()
 
-    return render(request, 'profile.html', {'form': form})
-
-def determine_blood_group(num_A, num_B, num_D):
-    if num_A > 0 and num_B > 0 and num_D > 0:
-        return "AB+"
-    elif num_A > 0 and num_B > 0 and num_D == 0:
-        return "AB-"
-    elif num_A > 0 and num_B == 0 and num_D > 0:
-        return "A+"
-    elif num_A > 0 and num_B == 0 and num_D == 0:
-        return "A-"
-    elif num_A == 0 and num_B > 0 and num_D > 0:
-        return "B+"
-    elif num_A == 0 and num_B > 0 and num_D == 0:
-        return "B-"
-    elif num_A == 0 and num_B == 0 and num_D > 0:
-        return "O+"
-    elif num_A == 0 and num_B == 0 and num_D == 0:
-        return "O-"
-    else:
-        return "Unknown"
-
+    return render(request, 'profile.html', {
+        'abd_image_url': abd_image_url,
+        'morphologic_image_url': morphologic_image_url,
+        'blood_type': blood_type
+    })
