@@ -70,10 +70,20 @@ Step 3: The System Processes the Image and Displays the Identified Blood Group
 
 Image Processing:
 
-The system uses image processing algorithms to analyze the uploaded image. It looks for specific markers and characteristics in the blood cells to determine the blood group.
+->Converts the uploaded image to grayscale.
+
+->Reduces noise using Gaussian blur.
+
+->Enhances contrast.
+
+->Performs morphological operations to refine the image.
 
 Displaying Results:
 
-Once the processing is complete, the application displays the identified blood group on the profile page.
+->Identifies the blood group based on the processed image.
 
-The user can see the result along with any additional details, such as contour count, which may be relevant to the analysis.
+->Displays the identified blood group on the profile page.
+
+->Shows both the original and processed images.
+
+->Provides additional details like contour count.
