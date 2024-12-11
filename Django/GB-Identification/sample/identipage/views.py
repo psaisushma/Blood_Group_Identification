@@ -103,21 +103,21 @@ def profile(request):
             num_region_D = cal_agg(region_D)
 
             # Determine the blood type based on agglutination
-            if num_region_A > 0 and num_region_B == 0 and num_region_D > 0:
+            if num_region_A > 3 and num_region_B <= 3 and num_region_D > 0:
                 blood_type = "A+"
-            elif num_region_A == 0 and num_region_B > 0 and num_region_D > 0:
+            elif num_region_A <= 3 and num_region_B > 3 and num_region_D > 0:
                 blood_type = "B+"
-            elif num_region_A > 0 and num_region_B > 0 and num_region_D > 0:
+            elif num_region_A > 3 and num_region_B > 3 and num_region_D > 0:
                 blood_type = "AB+"
-            elif num_region_A == 0 and num_region_B == 0 and num_region_D > 0:
+            elif num_region_A <= 3 and num_region_B <= 3 and num_region_D > 0:
                 blood_type = "O+"
-            elif num_region_A > 0 and num_region_B == 0 and num_region_D <= 0:
+            elif num_region_A > 3 and num_region_B <= 3 and num_region_D <= 0:
                 blood_type = "A-"
-            elif num_region_A == 0 and num_region_B > 0 and num_region_D <= 0:
+            elif num_region_A <= 3 and num_region_B > 3 and num_region_D <= 0:
                 blood_type = "B-"
-            elif num_region_A > 0 and num_region_B > 0 and num_region_D <= 0:
+            elif num_region_A > 3 and num_region_B > 3 and num_region_D <= 0:
                 blood_type = "AB-"
-            elif num_region_A == 0 and num_region_B == 0 and num_region_D <= 0:
+            elif num_region_A <= 3 and num_region_B <= 3 and num_region_D <= 0:
                 blood_type = "O-"
             else:
                 blood_type = "Unknown"
